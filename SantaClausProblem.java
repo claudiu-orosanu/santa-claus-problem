@@ -5,15 +5,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SantaClausProblem {
 
-	private int elfCount;
-	private int reindeerCount;
+    private int elfCount;
+    private int reindeerCount;
 
-	private Semaphore santaSem;
-	private Semaphore reindeerSem;
-	private Semaphore elfSem;
+    private Semaphore santaSem;
+    private Semaphore reindeerSem;
+    private Semaphore elfSem;
 
-	private Semaphore counterMutex;
-	private Semaphore elfMutex;
+    private Semaphore counterMutex;
+    private Semaphore elfMutex;
 
     private volatile boolean endOfTheWorld = false;
     private final Semaphore stopSem = new Semaphore(0);
@@ -26,25 +26,25 @@ public class SantaClausProblem {
     private int NUM_REINDEERS_IN_GROUP = 9;
 
     public void init() {
-		elfCount = 0;
-		reindeerCount = 0;
+        elfCount = 0;
+        reindeerCount = 0;
 
-		santaSem = new Semaphore(0);
-		reindeerSem = new Semaphore(0);
-		elfSem = new Semaphore(0);
+        santaSem = new Semaphore(0);
+        reindeerSem = new Semaphore(0);
+        elfSem = new Semaphore(0);
 
-		counterMutex = new Semaphore(1);
-		elfMutex = new Semaphore(1);
-	}
+        counterMutex = new Semaphore(1);
+        elfMutex = new Semaphore(1);
+    }
 
-	class Reindeer implements Runnable {
-		int id;
+    class Reindeer implements Runnable {
+        int id;
 
-		public Reindeer(int id) {
-			this.id = id;
-		}
+        public Reindeer(int id) {
+            this.id = id;
+        }
 
-		public void run() {
+        public void run() {
             while (!endOfTheWorld) {
                 try {
 
@@ -57,8 +57,7 @@ public class SantaClausProblem {
                     reindeerCount++;
                     if (reindeerCount == NUM_REINDEERS_IN_GROUP) {
                         // stop if end of the world
-                        if (stopCounter.decrementAndGet() == 0)
-                        {
+                        if (stopCounter.decrementAndGet() == 0) {
                             endOfTheWorld = true;
                             stopSem.release();
                         }
@@ -73,31 +72,31 @@ public class SantaClausProblem {
 
                     // get hitched to the sleigh
                     getHitched();
-                }
-                catch (InterruptedException ignored) {
+                } catch (InterruptedException ignored) {
                 }
             }
             System.out.printf("Reindeer %d is fading away\n", id);
         }
 
-		private void getHitched() {
-			System.out.printf("Reindeer %d is getting hitched\n", id);
-			try {
-				Thread.sleep(generator.nextInt(300));
-			} catch (InterruptedException ignored) {
+        private void getHitched() {
+            System.out.printf("Reindeer %d is getting hitched\n", id);
+            try {
+                Thread.sleep(generator.nextInt(300));
+            } catch (InterruptedException ignored) {
             }
-		}
-	}
+        }
+    }
 
-	class Elf implements Runnable {
-		private int id;
-		public Elf(int id) {
-			this.id = id;
-		}
+    class Elf implements Runnable {
+        private int id;
 
-		public void run() {
+        public Elf(int id) {
+            this.id = id;
+        }
 
-			try {
+        public void run() {
+
+            try {
                 Thread.sleep(generator.nextInt(500));
 
                 while (!endOfTheWorld) {
@@ -128,25 +127,24 @@ public class SantaClausProblem {
                     }
                     counterMutex.release();
                 }
+            } catch (InterruptedException e) {
             }
-			catch (InterruptedException e) {
-			}
             System.out.printf("Elf %d is fading away\n", id);
 
         }
 
-		private void getHelp() {
-			System.out.printf("Elf %d is getting help\n", id);
-			try {
+        private void getHelp() {
+            System.out.printf("Elf %d is getting help\n", id);
+            try {
                 Thread.sleep(generator.nextInt(400));
-			} catch (InterruptedException ignored) {
-			}
-		}
-	}
+            } catch (InterruptedException ignored) {
+            }
+        }
+    }
 
-	class Santa implements Runnable {
+    class Santa implements Runnable {
 
-		public void run() {
+        public void run() {
             while (!endOfTheWorld) {
                 try {
                     // wait until a group of elves or reindeers are ready
@@ -175,24 +173,24 @@ public class SantaClausProblem {
         }
 
 
-		public void prepSleigh() {
-			System.out.print("Santa is prepping the sleigh\n");
-			try {
-				Thread.sleep(700);
-			} catch (InterruptedException ignored) {
-			}
-		}
+        public void prepSleigh() {
+            System.out.print("Santa is prepping the sleigh\n");
+            try {
+                Thread.sleep(700);
+            } catch (InterruptedException ignored) {
+            }
+        }
 
-		public void helpElves() {
-			System.out.print("Santa is helping the elves\n");
-			try {
-				Thread.sleep(1100);
-			} catch (InterruptedException ignored) {
-			}
-		}
-	}
+        public void helpElves() {
+            System.out.print("Santa is helping the elves\n");
+            try {
+                Thread.sleep(1100);
+            } catch (InterruptedException ignored) {
+            }
+        }
+    }
 
-	public SantaClausProblem() {
+    public SantaClausProblem() {
         try {
             HashSet<Thread> threads = new HashSet<>();
             threads.add(new Thread(new Santa()));
@@ -228,7 +226,7 @@ public class SantaClausProblem {
         }
     }
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
         new SantaClausProblem();
-	}
+    }
 }
