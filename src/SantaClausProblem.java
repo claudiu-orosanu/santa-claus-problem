@@ -51,8 +51,10 @@ public class SantaClausProblem {
                     // protect the counters
                     counterMutex.acquire();
                     System.out.printf("Reindeer %d arrived\n", id);
+
                     // increment no of reindeers
                     reindeerCount++;
+
                     if (reindeerCount == NUM_REINDEERS_IN_GROUP) {
                         // stop if end of the world
                         if (stopCounter.decrementAndGet() == 0) {
@@ -70,6 +72,7 @@ public class SantaClausProblem {
 
                     // get hitched to the sleigh
                     getHitched();
+
                 } catch (InterruptedException ignored) {
                 }
             }
@@ -78,10 +81,10 @@ public class SantaClausProblem {
 
         private void getHitched() {
             System.out.printf("Reindeer %d is getting hitched\n", id);
-//            try {
-//                Thread.sleep(generator.nextInt(300));
-//            } catch (InterruptedException ignored) {
-//            }
+            try {
+                Thread.sleep(generator.nextInt(300));
+            } catch (InterruptedException ignored) {
+            }
         }
     }
 
@@ -98,10 +101,13 @@ public class SantaClausProblem {
                 Thread.sleep(generator.nextInt(500));
 
                 while (!endOfTheWorld) {
+
                     elfMutex.acquire();
                     System.out.printf("Elf %d entered\n", id);
+
                     counterMutex.acquire();
                     elfCount++;
+
                     if (elfCount == NUM_ELVES_IN_GROUP) {
                         // wake up santa, keep the elf mutex on so other elves cannot enter
                         // while the current group of elves is getting help from santa
@@ -111,11 +117,14 @@ public class SantaClausProblem {
                         elfMutex.release();
                     }
                     counterMutex.release();
+
                     // wait until a group of elves is complete
                     elfSem.acquire();
+
                     // get help from santa
                     getHelp();
                     counterMutex.acquire();
+
                     // decrement elf count
                     elfCount--;
                     if (elfCount == 0) {
@@ -147,19 +156,26 @@ public class SantaClausProblem {
                 try {
                     // wait until a group of elves or reindeers are ready
                     santaSem.acquire();
-                    System.out.print("Santa wakes up\n");
+                    System.out.print("\nSanta wakes up\n\n");
+
                     // protect counters
                     counterMutex.acquire();
+
                     if (reindeerCount == NUM_REINDEERS_IN_GROUP) {
-                        // update reindeer count
+
+                        // reset reindeer count
                         reindeerCount = 0;
+
                         // prep sleigh so that reindeers can get hitched
                         prepSleigh();
+
                         // wake up all reindeers that are waiting for Santa
                         reindeerSem.release(NUM_REINDEERS_IN_GROUP);
                     } else if (elfCount == NUM_ELVES_IN_GROUP) {
+
                         // help the group of elves
                         helpElves();
+
                         // wake up the elves
                         elfSem.release(NUM_ELVES_IN_GROUP);
                     }
@@ -170,9 +186,8 @@ public class SantaClausProblem {
             System.out.println("Santa is fading away");
         }
 
-
         public void prepSleigh() {
-            System.out.print("Santa is prepping the sleigh\n");
+            System.out.print("  [PREPARE] Santa is prepping the sleigh\n");
             try {
                 Thread.sleep(700);
             } catch (InterruptedException ignored) {
@@ -180,7 +195,7 @@ public class SantaClausProblem {
         }
 
         public void helpElves() {
-            System.out.print("Santa is helping the elves\n");
+            System.out.print("  [HELP] Santa is helping the elves\n");
             try {
                 Thread.sleep(1100);
             } catch (InterruptedException ignored) {
@@ -190,6 +205,9 @@ public class SantaClausProblem {
 
     public SantaClausProblem() {
         try {
+
+            System.out.println("\n    ==== START SANTA CLAUS ====\n\n");
+
             HashSet<Thread> threads = new HashSet<>();
             threads.add(new Thread(new Santa()));
 
@@ -204,7 +222,6 @@ public class SantaClausProblem {
             }
 
             init();
-
             for (Thread t : threads) {
                 t.start();
             }
@@ -213,14 +230,16 @@ public class SantaClausProblem {
                 // wait until end of the world
                 stopSem.acquire();
                 System.out.println("THE END HAS COME!");
+
                 for (Thread t : threads)
                     t.interrupt();
                 for (Thread t : threads)
                     t.join();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.out.println("Fin");
+            System.out.println("\n\n    ==== FINISH SANTA CLAUS ====");
 
         } catch (Exception e) {
             e.printStackTrace();
