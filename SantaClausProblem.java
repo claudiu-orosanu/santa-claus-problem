@@ -20,8 +20,6 @@ public class SantaClausProblem {
     private AtomicInteger stopCounter = new AtomicInteger(5);
     private Random generator = new Random();
 
-    private int NUM_OF_ELVES = 10;
-    private int NUM_OF_REINDEERS = 9;
     private int NUM_ELVES_IN_GROUP = 3;
     private int NUM_REINDEERS_IN_GROUP = 9;
 
@@ -31,7 +29,7 @@ public class SantaClausProblem {
 
         santaSem = new Semaphore(0);
         reindeerSem = new Semaphore(0);
-        elfSem = new Semaphore(0);
+        elfSem = new Semaphore(0, true);
 
         counterMutex = new Semaphore(1);
         elfMutex = new Semaphore(1);
@@ -80,10 +78,10 @@ public class SantaClausProblem {
 
         private void getHitched() {
             System.out.printf("Reindeer %d is getting hitched\n", id);
-            try {
-                Thread.sleep(generator.nextInt(300));
-            } catch (InterruptedException ignored) {
-            }
+//            try {
+//                Thread.sleep(generator.nextInt(300));
+//            } catch (InterruptedException ignored) {
+//            }
         }
     }
 
@@ -195,10 +193,13 @@ public class SantaClausProblem {
             HashSet<Thread> threads = new HashSet<>();
             threads.add(new Thread(new Santa()));
 
-            for (int i = 0; i < NUM_OF_ELVES; i++) {
+            int numOfElves = 10;
+            int numOfReindeers = 9;
+
+            for (int i = 0; i < numOfElves; i++) {
                 threads.add(new Thread(new Elf(i)));
             }
-            for (int i = 0; i < NUM_OF_REINDEERS; i++) {
+            for (int i = 0; i < numOfReindeers; i++) {
                 threads.add(new Thread(new Reindeer(i)));
             }
 
