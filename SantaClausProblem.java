@@ -25,6 +25,9 @@ public class SantaClausProblem {
     private int NUM_REINDEERS_IN_GROUP = 9;
 
     public void init() {
+
+        // Shared data
+
         elfCount = 0;
         reindeerCount = 0;
 
