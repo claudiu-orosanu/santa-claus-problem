@@ -14,7 +14,7 @@ public class SantaClausProblem {
 
     private Semaphore counterMutex;
     private Semaphore elfMutex;
-    private Semaphore reindeerfMutex;
+    private Semaphore reindeerMutex;
 
     private volatile boolean endOfTheWorld = false;
     private final Semaphore stopSem = new Semaphore(0);
@@ -34,7 +34,7 @@ public class SantaClausProblem {
 
         counterMutex = new Semaphore(1);
         elfMutex = new Semaphore(1, true);
-        reindeerfMutex = new Semaphore(1, true);
+        reindeerMutex = new Semaphore(1, true);
     }
 
     class Reindeer implements Runnable {
@@ -48,7 +48,7 @@ public class SantaClausProblem {
             while (!endOfTheWorld) {
                 try {
                     Thread.sleep(generator.nextInt(300));
-                    reindeerfMutex.acquire();
+                    reindeerMutex.acquire();
 
                     // protect the counters
                     counterMutex.acquire();
@@ -69,7 +69,7 @@ public class SantaClausProblem {
                         santaSem.release();
                     }
                     else {
-                        reindeerfMutex.release();
+                        reindeerMutex.release();
                     }
                     counterMutex.release();
 
@@ -83,8 +83,8 @@ public class SantaClausProblem {
                     // decrement reindeer count
                     reindeerCount--;
                     if (reindeerCount == 0) {
-                        // after last elf exits, release elf mutex so other elves can join
-                        reindeerfMutex.release();
+                        // after last reindeer exits, release reindeer mutex so other reindeer can join
+                        reindeerMutex.release();
 
                     }
                     counterMutex.release();
