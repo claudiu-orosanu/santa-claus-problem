@@ -14,10 +14,11 @@ public class SantaClausProblem {
 
     private Semaphore counterMutex;
     private Semaphore elfMutex;
+    private Semaphore reindeerfMutex;
 
     private volatile boolean endOfTheWorld = false;
     private final Semaphore stopSem = new Semaphore(0);
-    private AtomicInteger stopCounter = new AtomicInteger(5);
+    private int stopCounter = 5;
     private Random generator = new Random();
 
     private int NUM_ELVES_IN_GROUP = 3;
@@ -28,11 +29,12 @@ public class SantaClausProblem {
         reindeerCount = 0;
 
         santaSem = new Semaphore(0);
-        reindeerSem = new Semaphore(0);
+        reindeerSem = new Semaphore(0, true);
         elfSem = new Semaphore(0, true);
 
         counterMutex = new Semaphore(1);
-        elfMutex = new Semaphore(1);
+        elfMutex = new Semaphore(1, true);
+        reindeerfMutex = new Semaphore(1, true);
     }
 
     class Reindeer implements Runnable {
@@ -45,23 +47,29 @@ public class SantaClausProblem {
         public void run() {
             while (!endOfTheWorld) {
                 try {
-
                     Thread.sleep(generator.nextInt(300));
+                    reindeerfMutex.acquire();
 
                     // protect the counters
                     counterMutex.acquire();
                     System.out.printf("Reindeer %d arrived\n", id);
+
                     // increment no of reindeers
                     reindeerCount++;
                     if (reindeerCount == NUM_REINDEERS_IN_GROUP) {
+
                         // stop if end of the world
-                        if (stopCounter.decrementAndGet() == 0) {
+                        stopCounter--;
+                        if (stopCounter == 0) {
                             endOfTheWorld = true;
                             stopSem.release();
                         }
 
                         // wake up santa
                         santaSem.release();
+                    }
+                    else {
+                        reindeerfMutex.release();
                     }
                     counterMutex.release();
 
@@ -70,6 +78,16 @@ public class SantaClausProblem {
 
                     // get hitched to the sleigh
                     getHitched();
+                    counterMutex.acquire();
+
+                    // decrement reindeer count
+                    reindeerCount--;
+                    if (reindeerCount == 0) {
+                        // after last elf exits, release elf mutex so other elves can join
+                        reindeerfMutex.release();
+
+                    }
+                    counterMutex.release();
                 } catch (InterruptedException ignored) {
                 }
             }
@@ -78,10 +96,10 @@ public class SantaClausProblem {
 
         private void getHitched() {
             System.out.printf("Reindeer %d is getting hitched\n", id);
-//            try {
-//                Thread.sleep(generator.nextInt(300));
-//            } catch (InterruptedException ignored) {
-//            }
+            try {
+                Thread.sleep(generator.nextInt(300));
+            } catch (InterruptedException ignored) {
+            }
         }
     }
 
@@ -98,10 +116,12 @@ public class SantaClausProblem {
                 Thread.sleep(generator.nextInt(500));
 
                 while (!endOfTheWorld) {
+
                     elfMutex.acquire();
                     System.out.printf("Elf %d entered\n", id);
                     counterMutex.acquire();
                     elfCount++;
+
                     if (elfCount == NUM_ELVES_IN_GROUP) {
                         // wake up santa, keep the elf mutex on so other elves cannot enter
                         // while the current group of elves is getting help from santa
@@ -112,6 +132,7 @@ public class SantaClausProblem {
                     }
                     counterMutex.release();
                     // wait until a group of elves is complete
+
                     elfSem.acquire();
                     // get help from santa
                     getHelp();
@@ -121,7 +142,6 @@ public class SantaClausProblem {
                     if (elfCount == 0) {
                         // after last elf exits, release elf mutex so other elves can join
                         elfMutex.release();
-
                     }
                     counterMutex.release();
                 }
@@ -150,9 +170,8 @@ public class SantaClausProblem {
                     System.out.print("Santa wakes up\n");
                     // protect counters
                     counterMutex.acquire();
+
                     if (reindeerCount == NUM_REINDEERS_IN_GROUP) {
-                        // update reindeer count
-                        reindeerCount = 0;
                         // prep sleigh so that reindeers can get hitched
                         prepSleigh();
                         // wake up all reindeers that are waiting for Santa
@@ -220,7 +239,6 @@ public class SantaClausProblem {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.out.println("Fin");
 
         } catch (Exception e) {
             e.printStackTrace();
